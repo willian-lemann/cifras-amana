@@ -4,5 +4,15 @@ out
 build
 .git
 .gitignore
-.env*.local
 README.md
+
+# Segredos: o COPY . . gravaria o .env numa layer da imagem.
+.env
+.env.*
+!.env.example
+
+# Não faz parte da imagem de produção
+tests
+.claude
+.husky
+old_code

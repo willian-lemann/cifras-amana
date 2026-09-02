@@ -16,8 +16,25 @@ const trustedOrigins = [process.env.NEXT_PUBLIC_APP_URL].filter(
   (origin): origin is string => Boolean(origin),
 );
 
-export const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-02-25.clover",
+// Built on first use, not on import. `next build` imports every route module to
+// collect page data, and constructing Stripe eagerly made that step demand
+// STRIPE_SECRET_KEY at build time — which broke container builds, where the
+// secret only exists at runtime.
+let stripeInstance: Stripe | null = null;
+
+function getStripeClient(): Stripe {
+  if (!stripeInstance) {
+    const apiKey = process.env.STRIPE_SECRET_KEY;
+    if (!apiKey) {
+      throw new Error("STRIPE_SECRET_KEY is not set");
+    }
+    stripeInstance = new Stripe(apiKey, { apiVersion: "2026-02-25.clover" });
+  }
+  return stripeInstance;
+}
+
+export const stripeClient = new Proxy({} as Stripe, {
+  get: (_target, property) => Reflect.get(getStripeClient(), property),
 });
 
 export const auth = betterAuth({

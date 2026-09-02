@@ -1,63 +1,72 @@
-FROM node:lts-alpine AS base
+# Node fixado na versão do .nvmrc — "lts" muda de major sozinho e quebraria o
+# build sem ninguém mexer em nada.
+FROM node:22-alpine AS base
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Stage 1: Install dependencies
+# Stage 1: dependências
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
-RUN \
-   if [ -f package-lock.json ]; then npm ci; \
-   elif [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-   elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
-   else echo "Lockfile not found." && exit 1; \
-   fi
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
-# Stage 2: Rebuild the source code only when needed
+# Stage 2: build
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org
-ENV NEXT_TELEMETRY_DISABLED=1
+# As NEXT_PUBLIC_* são embutidas no bundle do cliente durante o build, então
+# precisam existir aqui — em runtime já é tarde. No Railway, declare cada uma
+# como variável do serviço; o Docker as recebe por estes ARGs.
+ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_SUBDOMAINS_ENABLED
+ARG NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+ARG NEXT_PUBLIC_POSTHOG_HOST
+ARG NEXT_PUBLIC_ENABLE_POSTHOG
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ENV NEXT_PUBLIC_SUBDOMAINS_ENABLED=$NEXT_PUBLIC_SUBDOMAINS_ENABLED
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=$NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+ENV NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
+ENV NEXT_PUBLIC_ENABLE_POSTHOG=$NEXT_PUBLIC_ENABLE_POSTHOG
 
-RUN \
-   if [ -f package-lock.json ]; then npm run build; \
-   elif [ -f yarn.lock ]; then yarn build; \
-   elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
-   else echo "Lockfile not found." && exit 1; \
-   fi
+# O client do Prisma sai em generated/prisma. Gerar aqui em vez de depender do
+# que veio no repositório evita subir imagem com client defasado do schema.
+# O prisma.config.ts resolve env("DATABASE_URL"), mas `generate` não conecta em
+# banco nenhum — o placeholder só precisa ser uma URL válida. Este ENV fica
+# preso ao stage de build e não chega na imagem final.
+ARG DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
+ENV DATABASE_URL=$DATABASE_URL
+RUN corepack enable pnpm && pnpm exec prisma generate
 
-# Stage 3: Production image, copy all the files and run Next
+RUN corepack enable pnpm && pnpm run build
+
+# Stage 3: runtime
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+# Permissão correta para o cache de prerender/ISR, escrito em runtime pelo
+# usuário nextjs.
+RUN mkdir .next && chown nextjs:nodejs .next
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-# Railway injects the PORT variable automatically, but we default to 3000
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# server.js is created by next build from the standalone output
 CMD ["node", "server.js"]
