@@ -10,4 +10,4 @@ Disallow: /subscription/
 Disallow: /profile/
 Disallow: /landing-pages/
 
-Sitemap: https://imovelist.com/sitemap.xml
+Sitemap: https://cifras-amana.com/sitemap.xml

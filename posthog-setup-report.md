@@ -1,7 +1,7 @@
 <wizard-report>
 # PostHog post-wizard report
 
-The wizard has completed a deep integration of PostHog analytics into the Imovelist Next.js App Router project. PostHog is initialized client-side via `instrumentation-client.ts` (the recommended approach for Next.js 15.3+), a server-side singleton was created in `lib/posthog-server.ts`, and a reverse proxy was configured in `next.config.ts` to route events through `/ingest` — reducing ad-blocker interception. Both `posthog-js` and `posthog-node` were installed. Environment variables were written to `.env.local`.
+The wizard has completed a deep integration of PostHog analytics into the Cifras Amana Next.js App Router project. PostHog is initialized client-side via `instrumentation-client.ts` (the recommended approach for Next.js 15.3+), a server-side singleton was created in `lib/posthog-server.ts`, and a reverse proxy was configured in `next.config.ts` to route events through `/ingest` — reducing ad-blocker interception. Both `posthog-js` and `posthog-node` were installed. Environment variables were written to `.env.local`.
 
 User identification is performed on the client at login and signup using `posthog.identify()` with the user's ID as the distinct ID. Server-side events use the same user ID so client and server behavior can be correlated in PostHog.
 
