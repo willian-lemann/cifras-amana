@@ -7,21 +7,17 @@ import {
   QueryClientProvider,
 } from "@tanstack/react-query";
 import { LazyMotion, domAnimation } from "framer-motion";
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "./ui/tooltip";
-import {
-  CookieConsentBanner,
-  CookieConsentProvider,
-  UmamiScript,
-} from "./cookie-consent";
+import { CookieConsentProvider } from "./cookie-consent";
 
-const FeedbackWidget = dynamic(
-  () => import("./feedback-widget").then((mod) => mod.FeedbackWidget),
-  { ssr: false },
-);
+// const FeedbackWidget = dynamic(
+//   () => import("./feedback-widget").then((mod) => mod.FeedbackWidget),
+//   { ssr: false },
+// );
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
