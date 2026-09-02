@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /listings/
+Disallow: /gallery/
+Disallow: /studio/
+Disallow: /instagram/
+Disallow: /subscription/
+Disallow: /profile/
+Disallow: /landing-pages/
+
+Sitemap: https://imovelist.com/sitemap.xml

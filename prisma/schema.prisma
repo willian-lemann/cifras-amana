@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth (better-auth) ───────────────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique(map: "users_email_unique") @db.VarChar(254)
+  name          String
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Payments (Stripe via @better-auth/stripe)
+  stripeCustomerId String? @unique
+
+  // Relations
+  sessions      Session[]
+  accounts      Account[]
+  subscriptions Subscription[]
+  AiUsageLogs   AiUsageLog[]
+  Items         Item[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ─── Subscriptions (@better-auth/stripe) ──────────────────────────────────────
+
+model Subscription {
+  id                   String    @id
+  plan                 String
+  referenceId          String
+  stripeCustomerId     String?
+  // Field name expected by @better-auth/stripe; @map keeps the original column.
+  stripeSubscriptionId String?   @map("subscriptionId")
+  status               String?   @default("incomplete")
+  periodStart          DateTime?
+  periodEnd            DateTime?
+  cancelAtPeriodEnd    Boolean?  @default(false)
+  cancelAt             DateTime?
+  canceledAt           DateTime?
+  endedAt              DateTime?
+  seats                Int?
+  billingInterval      String?
+  stripeScheduleId     String?
+  trialStart           DateTime?
+  trialEnd             DateTime?
+  limits               Json?
+  metadata             Json?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  user                 User      @relation(fields: [referenceId], references: [id], onDelete: Cascade)
+
+  @@index([referenceId])
+  @@map("subscription")
+}
+
+// ─── AI Usage Logging ─────────────────────────────────────────────────────────
+
+model AiUsageLog {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @db.VarChar(100)
+  model     String   @db.VarChar(50)
+  tokensIn  Int      @default(0)
+  tokensOut Int      @default(0)
+  costCents Int      @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("ai_usage_logs")
+}
+
+// ─── Example resource ─────────────────────────────────────────────────────────
+// Minimal, user-scoped resource used to demonstrate the layered (single
+// responsibility) pattern: schema → service → route handler → query hook.
+
+model Item {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String   @db.VarChar(255)
+  content   String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)], map: "items_user_id_createdAt_index")
+  @@map("items")
+}

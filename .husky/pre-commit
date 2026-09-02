@@ -1,0 +1,3 @@
+# Pre-commit Hook Documentation
+npx lint-staged && pnpm run qa && pnpm audit --audit-level=high
+

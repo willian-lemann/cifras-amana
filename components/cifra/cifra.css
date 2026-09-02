@@ -1,0 +1,588 @@
+/* Ported from the standalone Vite app. The tool is print-first: the on-screen
+   sheet is a preview of the A4 page, so these rules stay hand-written CSS
+   instead of utility classes — the column, break and @page behaviour is what
+   the feature is. Everything is scoped under .cifra-app so it can't leak into
+   the rest of the application. */
+
+.cifra-app {
+  --bg: #faf7f0;
+  --paper: #ffffff;
+  --ink: #1f2420;
+  --ink-soft: #5b6157;
+  --line: #e3ddce;
+  --accent: #d9a441;
+  --accent-ink: #4a3a0a;
+  --chord-bg: #ffe98a;
+  --danger: #b5482f;
+
+  min-height: 100vh;
+  padding: 24px 18px 60px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+}
+
+.cifra-app * {
+  box-sizing: border-box;
+}
+
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.app-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 2px;
+}
+.app-sub {
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  margin: 0 0 20px;
+  line-height: 1.4;
+}
+
+.cifra-app .card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.raw-input {
+  width: 100%;
+  min-height: 220px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  color: var(--ink);
+  background: #fffdf8;
+}
+.raw-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.cifra-app .row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.cifra-app .row + .row {
+  margin-top: 10px;
+}
+
+.cifra-app input[type="file"] {
+  font-size: 13px;
+  max-width: 220px;
+}
+
+.cifra-app button {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    transform 0.05s ease,
+    background 0.15s ease;
+}
+.cifra-app button:hover {
+  background: #f3efe4;
+}
+.cifra-app button:active {
+  transform: scale(0.97);
+}
+.cifra-app button.primary {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+.cifra-app button.primary:hover {
+  background: #333;
+}
+.cifra-app button.accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.cifra-app button.accent:hover {
+  filter: brightness(1.05);
+}
+.cifra-app button.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-soft);
+}
+.cifra-app button.ghost:hover {
+  background: #f0ece0;
+}
+.cifra-app button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin-bottom: 16px;
+  position: sticky;
+  top: 8px;
+  z-index: 5;
+}
+.tone-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tone-badge {
+  font-weight: 700;
+  font-size: 15px;
+  background: var(--chord-bg);
+  padding: 4px 12px;
+  border-radius: 8px;
+  min-width: 34px;
+  text-align: center;
+}
+.jump-key {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.cifra-app button.step-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cifra-app label.small {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.meta-fields {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.meta-fields input {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: #fffdf8;
+  color: var(--ink);
+}
+.meta-fields input.titulo {
+  flex: 1 1 260px;
+  font-size: 16px;
+}
+.meta-fields input.artista {
+  flex: 1 1 180px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+.meta-fields input.capo {
+  flex: 0 1 160px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.sheet {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 24px 26px;
+}
+/* Two columns, applied on screen and on paper alike. The on-screen sheet is
+   ~708px of content against 184mm (~695px) when printed, so the resulting
+   column widths match within a couple of percent and the preview is honest. */
+.sheet.cols-2 {
+  column-count: 2;
+  column-gap: 9mm;
+  column-rule: 1px solid var(--line);
+}
+/* never split a stanza across a column or a page — that would strand a chord
+   line from the lyric line underneath it */
+.stanza {
+  break-inside: avoid;
+}
+/* A stanza taller than the column can't be kept whole, and the browser then
+   breaks it wherever it likes. These smaller units — a chord line plus the
+   lyric line it sits over — are unbreakable too, so the forced break lands
+   between them instead of between the notes and their letra. */
+.line-unit {
+  break-inside: avoid;
+}
+
+/* hidden single-column mirror at true printed width, used only for measuring */
+.measure-host {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 184mm;
+  visibility: hidden;
+  pointer-events: none;
+}
+.measure-host .sheet {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.line-blank {
+  height: 0.6em;
+}
+.line-chords,
+.line-header {
+  font-weight: 700;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+/* chords are buttons that open the picker — strip the generic button chrome so
+   they still read as inline highlighted text inside the lyric flow */
+.cifra-app button.chord-tok {
+  display: inline;
+  font: inherit;
+  font-weight: inherit;
+  color: inherit;
+  background: var(--chord-bg);
+  border: none;
+  border-radius: 3px;
+  padding: 0 2px;
+  cursor: pointer;
+  transition: none;
+}
+.cifra-app button.chord-tok:hover {
+  background: #ffdf5c;
+}
+.cifra-app button.chord-tok:active {
+  transform: none;
+}
+.cifra-app button.chord-tok:focus-visible,
+.cifra-app button.chord-tok.is-editing {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.plain-tok {
+  outline: none;
+}
+.line-lyrics {
+  outline: none;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  color: var(--ink);
+}
+.line-lyrics:focus {
+  background: #f7f5ee;
+  border-radius: 4px;
+}
+
+.cifra-app .hint {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+}
+
+/* ---- organize mode ---- */
+
+.sheet.is-organizing {
+  cursor: pointer;
+  user-select: none;
+}
+.line-row {
+  border-radius: 4px;
+  box-shadow: inset 2px 0 0 transparent;
+  transition: background 0.1s ease;
+}
+.sheet.is-organizing .line-row:hover {
+  background: #f3efe4;
+}
+.line-row.is-selected,
+.sheet.is-organizing .line-row.is-selected:hover {
+  background: #fdf0c8;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.organize-bar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 20;
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(31, 36, 32, 0.14);
+}
+.ob-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.ob-count {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.ob-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.cifra-app .organize-bar button.ob-opt {
+  font-size: 12px;
+  padding: 6px 11px;
+  border-radius: 8px;
+  background: #fffdf8;
+}
+.cifra-app .organize-bar button.ob-opt:hover:not(:disabled) {
+  background: var(--chord-bg);
+  border-color: var(--accent);
+}
+.ob-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.ob-custom {
+  display: flex;
+  gap: 6px;
+  flex: 1 1 240px;
+}
+.ob-custom input {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
+  color: var(--ink);
+}
+.cifra-app .organize-bar button.ob-ghost {
+  font-size: 12px;
+  padding: 7px 11px;
+  color: var(--ink-soft);
+}
+
+/* The picker is portalled to <body>, outside .cifra-app, so it gets no styling
+   from the scoped rules above and resets everything it needs itself. */
+.chord-picker {
+  --paper: #ffffff;
+  --ink: #1f2420;
+  --ink-soft: #5b6157;
+  --line: #e3ddce;
+  --accent: #d9a441;
+  --accent-ink: #4a3a0a;
+  --chord-bg: #ffe98a;
+
+  position: fixed;
+  z-index: 50;
+  width: 278px;
+  padding: 12px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 34px rgba(31, 36, 32, 0.18);
+  color: var(--ink);
+}
+.chord-picker button {
+  font-family: inherit;
+  cursor: pointer;
+}
+.cp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cp-preview {
+  font-weight: 700;
+  font-size: 16px;
+  background: var(--chord-bg);
+  padding: 3px 10px;
+  border-radius: 7px;
+}
+.cp-close {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 2px;
+  color: var(--ink-soft);
+}
+.cp-close:hover {
+  color: var(--ink);
+}
+.cp-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin: 11px 0 5px;
+}
+.cp-grid {
+  display: grid;
+  gap: 4px;
+}
+.cp-roots {
+  grid-template-columns: repeat(6, 1fr);
+}
+.cp-quals {
+  grid-template-columns: repeat(4, 1fr);
+}
+.cp-opt {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fffdf8;
+  color: var(--ink);
+}
+.cp-opt:hover {
+  background: #f3efe4;
+}
+.cp-opt.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.cp-custom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.cp-custom .cp-label {
+  margin: 0;
+}
+.cp-custom input {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fffdf8;
+  color: var(--ink);
+}
+
+.cifra-app input[type="range"] {
+  width: 130px;
+}
+
+/* the paper header replaces the editable meta inputs when printing */
+.print-header {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 13mm;
+  }
+
+  body:has(.cifra-app) {
+    background: #fff;
+  }
+  .cifra-app {
+    background: #fff;
+    padding: 0;
+    min-height: 0;
+  }
+  .wrap {
+    max-width: none;
+  }
+  .no-print {
+    display: none !important;
+  }
+
+  .print-header {
+    display: block;
+  }
+  .print-title {
+    font-weight: bold;
+    font-size: 1.3em;
+    margin-bottom: 4px;
+  }
+  .print-capo {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+  }
+
+  .sheet {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    line-height: 1.35;
+    color: #000;
+  }
+  .line-chords,
+  .line-header {
+    line-height: 1.35;
+  }
+
+  .measure-host {
+    display: none;
+  }
+  /* On paper the marker pen belongs on the section labels, not on the chords.
+     The chord padding stays so the columns keep landing on the same syllables
+     they do on screen — only the fill goes away. */
+  .cifra-app button.chord-tok {
+    background: none;
+    box-shadow: none;
+  }
+  /* the label only, never the chords that may share a header line */
+  .line-header .plain-tok {
+    background: #ffff00;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .chord-picker {
+    display: none !important;
+  }
+  /* selection is an editing affordance — it must never reach paper */
+  .line-row,
+  .line-row.is-selected {
+    background: none;
+    box-shadow: none;
+  }
+}
