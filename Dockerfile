@@ -35,13 +35,18 @@ ENV NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
 ENV NEXT_PUBLIC_ENABLE_POSTHOG=$NEXT_PUBLIC_ENABLE_POSTHOG
 
 # O client do Prisma sai em generated/prisma. Gerar aqui em vez de depender do
-# que veio no repositório evita subir imagem com client defasado do schema.
-# O prisma.config.ts resolve env("DATABASE_URL"), mas `generate` não conecta em
-# banco nenhum — o placeholder só precisa ser uma URL válida. Este ENV fica
-# preso ao stage de build e não chega na imagem final.
-ARG DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
-ENV DATABASE_URL=$DATABASE_URL
-RUN corepack enable pnpm && pnpm exec prisma generate
+# que veio no repositorio evita subir imagem com client defasado do schema.
+#
+# O prisma.config.ts resolve env("DATABASE_URL"), mas `generate` nao conecta em
+# banco nenhum — basta uma URL sintaticamente valida. O fallback fica no shell,
+# e nao como default do ARG, porque uma plataforma que passe
+# --build-arg DATABASE_URL= com valor vazio sobrescreve o default e derruba o
+# generate com PrismaConfigEnvError. ${VAR:-...} cobre "nao definida" e
+# "definida vazia". Nada disso vira ENV, entao nao chega na imagem final.
+ARG DATABASE_URL
+RUN corepack enable pnpm && \
+    DATABASE_URL="${DATABASE_URL:-postgresql://placeholder:placeholder@localhost:5432/placeholder}" \
+    pnpm exec prisma generate
 
 RUN corepack enable pnpm && pnpm run build
 
