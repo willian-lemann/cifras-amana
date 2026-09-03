@@ -34,20 +34,10 @@ ENV NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=$NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
 ENV NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
 ENV NEXT_PUBLIC_ENABLE_POSTHOG=$NEXT_PUBLIC_ENABLE_POSTHOG
 
-# O client do Prisma sai em generated/prisma. Gerar aqui em vez de depender do
-# que veio no repositorio evita subir imagem com client defasado do schema.
-#
-# O prisma.config.ts resolve env("DATABASE_URL"), mas `generate` nao conecta em
-# banco nenhum — basta uma URL sintaticamente valida. O fallback fica no shell,
-# e nao como default do ARG, porque uma plataforma que passe
-# --build-arg DATABASE_URL= com valor vazio sobrescreve o default e derruba o
-# generate com PrismaConfigEnvError. ${VAR:-...} cobre "nao definida" e
-# "definida vazia". Nada disso vira ENV, entao nao chega na imagem final.
-# ARG DATABASE_URL
-# RUN corepack enable pnpm && \
-#     DATABASE_URL="${DATABASE_URL:-postgresql://placeholder:placeholder@localhost:5432/placeholder}" \
-#     pnpm exec prisma generate
-
+# O client do Prisma nao e gerado aqui: generated/prisma esta versionado no
+# repositorio e chega pelo COPY . . acima. Isso exige rodar `pnpm dbgenerate`
+# e commitar o resultado sempre que prisma/schema.prisma mudar — caso contrario
+# a imagem sobe com um client defasado, e o erro so aparece em runtime.
 RUN corepack enable pnpm && pnpm run build
 
 # Stage 3: runtime
@@ -63,7 +53,7 @@ COPY --from=builder /app/public ./public
 
 # Permissão correta para o cache de prerender/ISR, escrito em runtime pelo
 # usuário nextjs.
-RUN mkdir .next && chown nextjs:nodejs .next
+RUN mkdir .next && chown nextjs:noddatabaseejs .next
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
