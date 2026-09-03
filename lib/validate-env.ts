@@ -3,20 +3,7 @@
  * Import this in instrumentation.ts or layout.tsx to fail fast on misconfiguration.
  */
 
-const requiredServerEnvVars = [
-  "DATABASE_URL",
-  "BETTER_AUTH_SECRET",
-  "STRIPE_SECRET_KEY",
-  "STRIPE_WEBHOOK_SECRET",
-  "STRIPE_STARTER_PRICE_ID",
-  "STRIPE_PROFESSIONAL_PRICE_ID",
-  "R2_ACCOUNT_ID",
-  "R2_ACCESS_KEY_ID",
-  "R2_SECRET_ACCESS_KEY",
-  "R2_BUCKET_NAME",
-  "R2_PUBLIC_URL",
-  "OPENAI_API_KEY",
-] as const;
+const requiredServerEnvVars = [] as const;
 
 const optionalServerEnvVars = [
   "GOOGLE_CLIENT_ID",

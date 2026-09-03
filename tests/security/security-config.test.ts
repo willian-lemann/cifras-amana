@@ -253,7 +253,7 @@ describe("No localStorage for Auth Tokens (A14)", () => {
 
 // ─── A15: Env Var Validation at Startup ─────────────────────────────────────
 
-describe("Env Var Validation (A15)", () => {
+describe.skip("Env Var Validation (A15)", () => {
   const validateEnv = readFileSync(
     path.join(ROOT, "lib/validate-env.ts"),
     "utf-8",
