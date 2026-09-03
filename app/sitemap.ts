@@ -1,6 +1,10 @@
 import { MetadataRoute } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+// `||` e nao `??` pelo mesmo motivo de app/layout.tsx: em build de container
+// a variavel chega como string vazia, e "" geraria URLs relativas no
+// sitemap, que sao invalidas.
+const BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

@@ -18,7 +18,11 @@ const geistMono = Geist_Mono({
 const APP_DESCRIPTION =
   "Cole a cifra, transponha pro tom da sua equipe e exporte um PDF A4 pronto pra folha do culto.";
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+// `||` e nao `??`: um build em container recebe a variavel como string vazia
+// quando o ARG nao e passado, e "" passaria pelo `??` direto para
+// new URL(""), que lanca ERR_INVALID_URL e derruba o build inteiro.
+const appUrl =
+  process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000";
 
 export const metadata: Metadata = {
   title: {
