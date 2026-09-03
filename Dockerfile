@@ -43,10 +43,10 @@ ENV NEXT_PUBLIC_ENABLE_POSTHOG=$NEXT_PUBLIC_ENABLE_POSTHOG
 # --build-arg DATABASE_URL= com valor vazio sobrescreve o default e derruba o
 # generate com PrismaConfigEnvError. ${VAR:-...} cobre "nao definida" e
 # "definida vazia". Nada disso vira ENV, entao nao chega na imagem final.
-ARG DATABASE_URL
-RUN corepack enable pnpm && \
-    DATABASE_URL="${DATABASE_URL:-postgresql://placeholder:placeholder@localhost:5432/placeholder}" \
-    pnpm exec prisma generate
+# ARG DATABASE_URL
+# RUN corepack enable pnpm && \
+#     DATABASE_URL="${DATABASE_URL:-postgresql://placeholder:placeholder@localhost:5432/placeholder}" \
+#     pnpm exec prisma generate
 
 RUN corepack enable pnpm && pnpm run build
 
