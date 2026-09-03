@@ -53,7 +53,7 @@ COPY --from=builder /app/public ./public
 
 # Permissão correta para o cache de prerender/ISR, escrito em runtime pelo
 # usuário nextjs.
-RUN mkdir .next && chown nextjs:noddatabaseejs .next
+RUN mkdir .next && chown nextjs:nodejs .next
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
